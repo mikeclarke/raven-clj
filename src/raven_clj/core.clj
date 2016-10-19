@@ -10,8 +10,8 @@
   "The name of this sentry client implementation"
   "raven-clj/1.4.2")
 
-(defn- generate-uuid []
-  (string/replace (UUID/randomUUID) #"-" ""))
+(defn- generate-uuid [& [uuid]]
+  (string/replace (or uuid (UUID/randomUUID)) #"-" ""))
 
 (defn make-sentry-url [uri project-id]
   (format "%s/api/%s/store/"
@@ -43,7 +43,7 @@
                     "/" (butlast (string/split url #"/"))))
      :project-id (Integer/parseInt (last (string/split url #"/")))}))
 
-(defn capture [dsn event-info]
+(defn capture [dsn event-info & {:keys [uuid]}]
   "Send a message to a Sentry server.
   event-info is a map that should contain a :message key and optional
   keys found at https://docs.getsentry.com/hosted/clientdev/#building-the-json-packet"
@@ -54,4 +54,4 @@
            :server_name (.getHostName (InetAddress/getLocalHost))
            :ts (str (Timestamp. (.getTime (Date.))))}
           event-info
-          {:event_id (generate-uuid)})))
+          {:event_id (generate-uuid uuid)})))
