@@ -3,7 +3,7 @@
   (:use clojure.test
         raven-clj.core)
   (:import [java.sql Timestamp]
-           [java.util Date]))
+           [java.util Date UUID]))
 
 (def example-dsn
   (str "https://"
@@ -89,4 +89,12 @@
         (with-redefs [send-packet (fn [ev] (reset! event-info ev))]
           (capture example-dsn {})
           (is (= (:platform @event-info) "clojure")
-              "should set :platform in event-info to clojure"))))))
+              "should set :platform in event-info to clojure"))))
+    (testing "with an explicit uuid"
+      (let [event-info (atom nil)
+            uuid (UUID/randomUUID)
+            event-id (#'raven-clj.core/generate-uuid uuid)]
+        (with-redefs [send-packet (fn [ev] (reset! event-info ev))]
+          (capture example-dsn {} :uuid uuid)
+          (is (= (:event_id @event-info) event-id)
+              (str "should set :event_id to " event-id)))))))
